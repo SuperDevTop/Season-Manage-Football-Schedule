@@ -1,0 +1,370 @@
+main function
+while(1){
+        for(int i=0;i<32;i++)
+                if(counts[i]<31)
+                        break;
+        if(i==32)
+                break;//all pairs are taken
+        int first = randnum(-1);
+        int second = randnum(first);
+        printf("%d %d", first, second);
+        //randnum func below
+}
+
+int randnum(int first){
+        int temp[32];
+        int j=0;
+        for(i=0;i<32;i++)
+                if(counts[i]<31)	//if available
+                        temp[j++]=(i+1);	//real number has to be index+1 and save to temp
+        if(first == -1)
+                return temp[rand()%j];	//if first
+                
+        while( (i=temp[rand()%j])!= first );	//prevent colliding with first
+        
+        return i;
+}
+
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+static class Constants
+{
+//    Maximum Team Count
+    public const int MaxN = 32;
+//    Maximum Game Count
+    public const int MaxM= MaxN * MaxN * 3;
+
+//    Limit Count of Match in 1 day
+    public const int MaxCountForOneDay = 15;
+}
+
+namespace Game
+{
+
+    public class Pair<T, U>
+    {
+        public Pair()
+        {
+        }
+
+        public Pair(T first, U second)
+        {
+            this.First = first;
+            this.Second = second;
+        }
+
+        public T First { get; set; }
+        public U Second { get; set; }
+    };
+
+    class Program
+    {
+        public int Compare(Pair<int, string> l1, Pair<int, string> l2)
+        {
+            if (l1.First< l2.First)
+                return -1;
+            if (l1.First> l2.First)
+                return 1;
+
+            return 0;
+        }
+
+        static void Main(string[] args)
+        {
+            string str;
+            int N, M;
+            Pair<int, int>[] Games = new Pair<int, int>[Constants.MaxM];
+            int[] GameInfo = new int[Constants.MaxM];
+            int[] PlayInfo = new int[Constants.MaxN];
+
+
+            Console.WriteLine("INPUT NUMBER OF TEAMS");
+            str = Console.ReadLine();
+            N = Convert.ToInt16(str);
+            M = N * (N - 1);
+
+            int[] GameId = new int[M];
+
+            for (int i = 0, k = 0; i < N; i ++)
+            {
+                PlayInfo[i] = 0;
+                for (int j = 0; j < N; j ++)
+                {
+                    if (i == j) continue;
+                    Games[k] = new Pair<int, int>(i, j);
+                    GameId[k] = k;
+                    GameInfo[k] = 0;
+                    k++;
+                }
+            }
+
+            // Sheduling
+
+            Console.WriteLine("------------------Schedule-------------------");
+
+            Random random = new Random();
+            DateTime today = DateTime.Today;
+            DateTime current = today;
+            int ret = 0;
+            int match_cnt = 0;
+            while (match_cnt < M)
+            {
+                ret++;
+                current = current.AddDays(1);
+                int today_cnt = random.Next() % Constants.MaxCountForOneDay;
+                if (today_cnt == 0) continue;
+                GameId = GameId.OrderBy(x => random.Next()).ToArray();
+                Console.WriteLine(current);
+                for (int i = 0; i < M && match_cnt < M && today_cnt > 0; i ++)
+                {
+                    int id = GameId[i];
+                    if (GameInfo[id] > 0) continue;
+                    int home = Games[id].First;
+                    int away = Games[id].Second;
+                    if (PlayInfo[home] == ret || PlayInfo[away] == ret) continue;
+                    PlayInfo[home] = PlayInfo[away] = GameInfo[id] = ret;
+                    Console.WriteLine("TEAM-" + (home+1).ToString() + " VS TEAM-" + (away+1).ToString());
+                    today_cnt--;
+                    match_cnt++;
+                }
+                Console.WriteLine();
+            }
+
+            Console.WriteLine("Input Team Number For Details:");
+            str = Console.ReadLine();
+            int ID = Convert.ToInt16(str);
+            int cnt = (N - 1) * 2;
+            int K = 0;
+            SortedList<int, string> sch = new SortedList<int, string>();
+            ID--;
+            for (int i=0; i<M; i++)
+            {
+                int home = Games[i].First;
+                int away = Games[i].Second;
+                int day = GameInfo[i];
+                if (home == ID)
+                {
+                    sch.Add(day, "Team-" + (away + 1).ToString() + " (Home)");
+                }
+                if (away == ID)
+                {
+                    sch.Add(day, "Team-" + (home + 1).ToString() + " (Away)");
+                }
+            }
+
+            foreach (var item in sch)
+            {
+                int day = item.Key;
+                DateTime d = today.AddDays(day);
+                Console.WriteLine(d);
+                Console.WriteLine(item.Value);
+                Console.WriteLine("==========================");
+            }
+        }
+    }
+}
+
+
+#include <stdio.h>
+#include <math.h>
+#include <time.h>
+#define COUNT 32
+
+bool taken[COUNT][COUNT];
+bool takenRound[COUNT];
+
+void resetRound(){
+        for(int i=0; i<COUNT; i++)
+                takenRound[i] = false;
+}
+
+int randTeam(){
+        int team;
+        
+        while(1){
+                team = rand() % COUNT;
+                if(!takenRound[team])
+                        break;
+        }
+        takenRound[team] = true;
+        return team;
+}
+
+int main(){
+        int i, j, k, curCnt;
+        srand(time(NULL));
+
+        //init
+        for(i = 0; i < COUNT; i++)
+                for(j = 0; j < COUNT; j++)
+                        taken[i][j] = false;
+        curCnt = 0;
+
+        while(1){                
+                if(curCnt >= COUNT*(COUNT-1))
+                        break;//all pairs are taken
+                
+                resetRound();
+                
+                int teamTakenRound = 0;
+                int roundLimit = COUNT%2==0 ? COUNT: COUNT - 1;
+                
+                while(teamTakenRound < roundLimit){
+                        i = randTeam()+1;
+                        j = randTeam()+1;
+                        
+                        printf("(%d,%d) ",i,j);
+                        
+                        teamTakenRound+=2;
+                }
+                curCnt++;
+        }
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+static class Constants
+{
+//    Maximum Team Count
+    public const int MaxN = 32;
+//    Maximum Game Count
+    public const int MaxM= MaxN * MaxN * 3;
+
+//    Limit Count of Match in 1 day
+    public const int MaxCountForOneDay = 15;
+}
+
+namespace Game
+{
+
+    public class Pair<T, U>
+    {
+        public Pair()
+        {
+        }
+
+        public Pair(T first, U second)
+        {
+            this.First = first;
+            this.Second = second;
+        }
+
+        public T First { get; set; }
+        public U Second { get; set; }
+    };
+
+    class Program
+    {
+        public int Process()
+        {
+
+            string str;
+            int N, M;
+            Pair<int, int>[] Games = new Pair<int, int>[Constants.MaxM];
+            int[] GameInfo = new int[Constants.MaxM];
+            int[] PlayInfo = new int[Constants.MaxN];
+
+
+            Console.WriteLine("INPUT NUMBER OF TEAMS");
+            str = Console.ReadLine();
+            N = Convert.ToInt16(str);
+            M = N * (N - 1);
+
+            int[] GameId = new int[M];
+
+            for (int i = 0, k = 0; i < N; i++)
+            {
+                PlayInfo[i] = 0;
+                for (int j = 0; j < N; j++)
+                {
+                    if (i == j) continue;
+                    Games[k] = new Pair<int, int>(i, j);
+                    GameId[k] = k;
+                    GameInfo[k] = 0;
+                    k++;
+                }
+            }
+
+            // Sheduling
+
+            Console.WriteLine("------------------Schedule-------------------");
+
+            Random random = new Random();
+            DateTime today = DateTime.Today;
+            DateTime current = today;
+            int ret = 0;
+            int match_cnt = 0;
+            while (match_cnt < M)
+            {
+                ret++;
+                current = current.AddDays(1);
+                int today_cnt = random.Next() % Constants.MaxCountForOneDay;
+                if (today_cnt == 0) continue;
+                GameId = GameId.OrderBy(x => random.Next()).ToArray();
+                Console.WriteLine(current);
+                for (int i = 0; i < M && match_cnt < M && today_cnt > 0; i++)
+                {
+                    int id = GameId[i];
+                    if (GameInfo[id] > 0) continue;
+                    int home = Games[id].First;
+                    int away = Games[id].Second;
+                    if (PlayInfo[home] == ret || PlayInfo[away] == ret) continue;
+                    PlayInfo[home] = PlayInfo[away] = GameInfo[id] = ret;
+                    Console.WriteLine("TEAM-" + (home + 1).ToString() + " VS TEAM-" + (away + 1).ToString());
+                    today_cnt--;
+                    match_cnt++;
+                }
+                Console.WriteLine();
+            }
+
+            Console.WriteLine("Input Team Number For Details:");
+            str = Console.ReadLine();
+            int ID = Convert.ToInt16(str);
+            int cnt = (N - 1) * 2;
+            SortedList<int, string> sch = new SortedList<int, string>();
+            ID--;
+            for (int i = 0; i < M; i++)
+            {
+                int home = Games[i].First;
+                int away = Games[i].Second;
+                int day = GameInfo[i];
+                if (home == ID)
+                {
+                    sch.Add(day, "Team-" + (away + 1).ToString() + " (Home)");
+                }
+                if (away == ID)
+                {
+                    sch.Add(day, "Team-" + (home + 1).ToString() + " (Away)");
+                }
+            }
+
+            foreach (var item in sch)
+            {
+                int day = item.Key;
+                DateTime d = today.AddDays(day);
+                Console.WriteLine(d);
+                Console.WriteLine(item.Value);
+                Console.WriteLine("==========================");
+            }
+            return 0;
+        }
+
+
+        static void Main(string[] args)
+        {
+            Program obj = new Game.Program();
+            obj.Process();
+        }
+    }
+}
